@@ -1,4 +1,5 @@
 import { sendEvent } from './Socket.js';
+import itemData from '../assets/item.json';
 
 class Score {
   score = 0;
@@ -28,7 +29,15 @@ class Score {
   }
 
   getItem(itemId) {
-    this.score += 100;
+    const itemInfo = this.getItemData(itemId);
+    if (itemInfo) {
+      this.score += itemInfo.score;
+      sendEvent(3, { itemId, stageId: this.currentStage });
+    }
+  }
+
+  getItemData(itemId) {
+    return itemData.find((item) => item.id === itemId);
   }
 
   reset() {
