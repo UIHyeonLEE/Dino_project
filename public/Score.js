@@ -1,5 +1,5 @@
 import { sendEvent } from './Socket.js';
-import itemData from '../assets/item.json';
+import itemData from './assets/item.json';
 
 class Score {
   score = 0;
