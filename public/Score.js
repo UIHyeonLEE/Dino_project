@@ -38,9 +38,8 @@ class Score {
       if (!response.ok) throw new Error('Network response was not ok');
       const unlockData = await response.json();
 
-      const stageId = stage + 500;
       const unlockedItemIds = unlockData.data
-        .filter((item) => item.stage_id === stageId)
+        .filter((item) => item.stage_id <= stage + 500)
         .map((item) => item.item_id);
 
       this.unlockedItems = this.itemData.filter((item) => unlockedItemIds.includes(item.id));

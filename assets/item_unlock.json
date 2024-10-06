@@ -5,6 +5,6 @@
     { "id": 101, "stage_id": 501, "item_id": 1 },
     { "id": 201, "stage_id": 502, "item_id": 2 },
     { "id": 301, "stage_id": 503, "item_id": 3 },
-    { "id": 301, "stage_id": 504, "item_id": 4 }
+    { "id": 401, "stage_id": 504, "item_id": 4 }
   ]
 }
