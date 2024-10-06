@@ -38,11 +38,13 @@ class Score {
       if (!response.ok) throw new Error('Network response was not ok');
       const unlockData = await response.json();
 
+      const stageId = stage + 500;
       const unlockedItemIds = unlockData.data
-        .filter((item) => item.stage_id === stage + 500)
+        .filter((item) => item.stage_id === stageId)
         .map((item) => item.item_id);
 
       this.unlockedItems = this.itemData.filter((item) => unlockedItemIds.includes(item.id));
+
       console.log('Unlocked items for stage', stage, this.unlockedItems);
     } catch (error) {
       console.error('Error loading unlocked items:', error);
@@ -65,7 +67,7 @@ class Score {
   }
 
   getItem(itemId) {
-    const itemInfo = this.getItemData(itemId);
+    const itemInfo = this.unlockedItems.find((item) => item.id === itemId);
     if (itemInfo) {
       this.score += itemInfo.score;
       console.log(`Item ${itemId} acquired. Score increased by ${itemInfo.score}.`);
