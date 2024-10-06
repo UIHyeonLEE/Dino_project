@@ -1,0 +1,8 @@
+{
+  "name": "item_unlock",
+  "version": "1.0.0",
+  "data": [
+    { "id": 101, "stage_id": 1001, "item_id": 1 },
+    { "id": 201, "stage_id": 1002, "item_id": 2 }
+  ]
+}
