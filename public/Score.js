@@ -39,25 +39,24 @@ class Score {
       const unlockData = await response.json();
 
       const unlockedItemIds = unlockData.data
-        .filter((item) => item.stage_id <= stage + 500)
+        .filter((item) => item.stage_id === stage + 500)
         .map((item) => item.item_id);
 
       this.unlockedItems = this.itemData.filter((item) => unlockedItemIds.includes(item.id));
-
       console.log('Unlocked items for stage', stage, this.unlockedItems);
     } catch (error) {
       console.error('Error loading unlocked items:', error);
     }
   }
 
-  update(deltaTime) {
+  async update(deltaTime) {
     this.score += deltaTime * 0.01;
 
     const newStage = Math.floor(this.score / this.STAGE_SCORE_INCREMENT);
     if (newStage > this.currentStage) {
       this.currentStage = newStage;
       console.log(`Stage changed to: ${this.currentStage}`);
-      this.loadUnlockedItems(this.currentStage);
+      await this.loadUnlockedItems(this.currentStage);
       sendEvent(11, {
         currentStage: this.currentStage,
         targetStage: this.currentStage * this.STAGE_SCORE_INCREMENT + 1,
@@ -66,7 +65,7 @@ class Score {
   }
 
   getItem(itemId) {
-    const itemInfo = this.unlockedItems.find((item) => item.id === itemId);
+    const itemInfo = this.getItemData(itemId);
     if (itemInfo) {
       this.score += itemInfo.score;
       console.log(`Item ${itemId} acquired. Score increased by ${itemInfo.score}.`);
