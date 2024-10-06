@@ -1,17 +1,52 @@
 import { sendEvent } from './Socket.js';
-import itemData from './assets/item.json';
 
 class Score {
   score = 0;
   HIGH_SCORE_KEY = 'highScore';
-  stageChange = true;
-  currentStage = 0; // 현재 스테이지 초기화
-  STAGE_SCORE_INCREMENT = 500; // 스테이지 변경 점수 초기화
+  currentStage = 0;
+  STAGE_SCORE_INCREMENT = 500;
+  itemData = [];
+  unlockedItems = [];
 
   constructor(ctx, scaleRatio) {
     this.ctx = ctx;
     this.canvas = ctx.canvas;
     this.scaleRatio = scaleRatio;
+    this.loadItemData();
+  }
+
+  async loadItemData() {
+    try {
+      const response = await fetch('/assets/item.json');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+
+      if (!data || !Array.isArray(data.data)) {
+        throw new Error('Item data is not an array');
+      }
+
+      this.itemData = data.data;
+      console.log('Item data loaded successfully:', this.itemData);
+    } catch (error) {
+      console.error('Error loading item data:', error);
+    }
+  }
+
+  async loadUnlockedItems(stage) {
+    try {
+      const response = await fetch('/assets/item_unlock.json');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const unlockData = await response.json();
+
+      const unlockedItemIds = unlockData.data
+        .filter((item) => item.stage_id === stage + 500)
+        .map((item) => item.item_id);
+
+      this.unlockedItems = this.itemData.filter((item) => unlockedItemIds.includes(item.id));
+      console.log('Unlocked items for stage', stage, this.unlockedItems);
+    } catch (error) {
+      console.error('Error loading unlocked items:', error);
+    }
   }
 
   update(deltaTime) {
@@ -21,8 +56,9 @@ class Score {
     if (newStage > this.currentStage) {
       this.currentStage = newStage;
       console.log(`Stage changed to: ${this.currentStage}`);
+      this.loadUnlockedItems(this.currentStage);
       sendEvent(11, {
-        currentStage: this.currentStage * this.STAGE_SCORE_INCREMENT,
+        currentStage: this.currentStage,
         targetStage: this.currentStage * this.STAGE_SCORE_INCREMENT + 1,
       });
     }
@@ -32,17 +68,21 @@ class Score {
     const itemInfo = this.getItemData(itemId);
     if (itemInfo) {
       this.score += itemInfo.score;
+      console.log(`Item ${itemId} acquired. Score increased by ${itemInfo.score}.`);
       sendEvent(3, { itemId, stageId: this.currentStage });
+    } else {
+      console.warn(`Item ${itemId} not found.`);
     }
   }
 
   getItemData(itemId) {
-    return itemData.find((item) => item.id === itemId);
+    return this.itemData.find((item) => item.id === itemId);
   }
 
   reset() {
     this.score = 0;
-    this.currentStage = 0; // 스테이지 초기화
+    this.currentStage = 0;
+    this.unlockedItems = [];
   }
 
   getBackgroundColor() {
