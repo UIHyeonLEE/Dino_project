@@ -8,6 +8,15 @@
     { "id": 503, "score": 300, "scorePerSecond": 8 },
     { "id": 504, "score": 400, "scorePerSecond": 16 },
     { "id": 505, "score": 500, "scorePerSecond": 32 },
-    { "id": 506, "score": 600, "scorePerSecond": 64 }
+    { "id": 506, "score": 600, "scorePerSecond": 64 },
+    { "id": 507, "score": 700, "scorePerSecond": 128 },
+    { "id": 508, "score": 800, "scorePerSecond": 256 },
+    { "id": 509, "score": 900, "scorePerSecond": 512 },
+    { "id": 510, "score": 1000, "scorePerSecond": 512 },
+    { "id": 511, "score": 1100, "scorePerSecond": 512 },
+    { "id": 512, "score": 1200, "scorePerSecond": 512 },
+    { "id": 513, "score": 1300, "scorePerSecond": 512 },
+    { "id": 514, "score": 1400, "scorePerSecond": 512 },
+    { "id": 515, "score": 1500, "scorePerSecond": 1024 }
   ]
 }

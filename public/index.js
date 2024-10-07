@@ -40,6 +40,17 @@ const ITEM_CONFIG = [
   { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: 'images/items/pokeball_yellow.png' },
   { width: 50 / 1.5, height: 50 / 1.5, id: 3, image: 'images/items/pokeball_purple.png' },
   { width: 50 / 1.5, height: 50 / 1.5, id: 4, image: 'images/items/pokeball_cyan.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 5, image: 'images/items/pokeball_orange.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 6, image: 'images/items/pokeball_lemon.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 7, image: 'images/items/pokeball_green.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 8, image: 'images/items/pokeball_dream.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 9, image: 'images/items/pokeball_pink.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 10, image: 'images/items/pokeball_dive.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 11, image: 'images/items/pokeball_dounut.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 12, image: 'images/items/pokeball_christmas.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 13, image: 'images/items/pokeball_sky.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 14, image: 'images/items/pokeball_cherish.png' },
+  { width: 50 / 1.5, height: 50 / 1.5, id: 15, image: 'images/items/pokeball_beast.png' },
 ];
 
 // 게임 요소들
@@ -173,7 +184,7 @@ function reset() {
   cactiController.reset();
   score.reset();
   gameSpeed = GAME_SPEED_START;
-  sendEvent(2, { timestamp: Date.now() });
+  sendEvent(2, { timestamp: Date.now(), broadcast: true });
 }
 
 function setupGameReset() {
