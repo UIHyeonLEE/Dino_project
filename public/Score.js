@@ -7,12 +7,14 @@ class Score {
   STAGE_SCORE_INCREMENT = 500;
   itemData = [];
   unlockedItems = [];
+  itemUnlockMap = {};
 
   constructor(ctx, scaleRatio) {
     this.ctx = ctx;
     this.canvas = ctx.canvas;
     this.scaleRatio = scaleRatio;
     this.loadItemData();
+    this.loadItemUnlockMap();
   }
 
   async loadItemData() {
@@ -32,37 +34,25 @@ class Score {
     }
   }
 
-  async loadUnlockedItems(stage) {
+  async loadItemUnlockMap() {
     try {
       const response = await fetch('/assets/item_unlock.json');
       if (!response.ok) throw new Error('Network response was not ok');
       const unlockData = await response.json();
 
-      const itemUnlockMap = {
-        0: [1], // 0스테이지: 1번 아이템
-        1: [1, 2], // 1스테이지: 1번, 2번 아이템
-        2: [1, 2, 3], // 2스테이지: 1번, 2번, 3번 아이템
-        3: [1, 2, 3, 4], // 3스테이지: 1번, 2번, 3번, 4번 아이템
-      };
-
-      const unlockedItemIds = itemUnlockMap[stage] || [];
-
-      this.unlockedItems = []; // 초기화
-
-      for (const itemId of unlockedItemIds) {
-        const item = this.getItemData(itemId);
-        if (item) {
-          this.unlockedItems.push(item);
-        }
-      }
-      this.unlockedItems = this.unlockedItems.filter((item) => {
-        const isValid = unlockedItemIds.includes(item.id);
-        return isValid;
+      unlockData.data.forEach((item) => {
+        const stage = item.stage_id - 501;
+        if (!this.itemUnlockMap[stage]) this.itemUnlockMap[stage] = [];
+        this.itemUnlockMap[stage].push(item.item_id);
       });
-      console.log('Unlocked items for stage', stage, this.unlockedItems);
+
+      console.log('Item unlock map loaded successfully:', this.itemUnlockMap);
     } catch (error) {
-      console.error('Error loading unlocked items:', error);
+      console.error('Error loading item unlock map:', error);
     }
+  }
+  async loadUnlockedItems(stage) {
+    this.unlockedItems = this.getItemUnlockIds(stage);
   }
 
   async update(deltaTime) {
@@ -78,6 +68,10 @@ class Score {
         targetStage: this.currentStage * this.STAGE_SCORE_INCREMENT + 1,
       });
     }
+  }
+
+  getItemUnlockIds(stage) {
+    return this.itemUnlockMap[stage] || [];
   }
 
   getItem(itemId) {

@@ -76,7 +76,6 @@ function createSprites() {
     maxJumpHeightInGame,
     scaleRatio,
   );
-
   ground = new Ground(ctx, groundWidthInGame, groundHeightInGame, GROUND_SPEED, scaleRatio);
 
   const cactiImages = CACTI_CONFIG.map((cactus) => {
@@ -89,8 +88,6 @@ function createSprites() {
     };
   });
 
-  cactiController = new CactiController(ctx, cactiImages, scaleRatio, GROUND_SPEED);
-
   const itemImages = ITEM_CONFIG.map((item) => {
     const image = new Image();
     image.src = item.image;
@@ -102,9 +99,21 @@ function createSprites() {
     };
   });
 
-  itemController = new ItemController(ctx, itemImages, scaleRatio, GROUND_SPEED);
-
   score = new Score(ctx, scaleRatio);
+
+  itemController = new ItemController(ctx, itemImages, scaleRatio, GROUND_SPEED, score);
+  cactiController = new CactiController(ctx, cactiImages, scaleRatio, GROUND_SPEED);
+
+  Promise.all([
+    ...cactiImages.map((cactus) => cactus.image.decode()),
+    ...itemImages.map((item) => item.image.decode()),
+  ])
+    .then(() => {
+      requestAnimationFrame(gameLoop);
+    })
+    .catch((err) => {
+      console.error('Image loading error:', err);
+    });
 }
 
 function getScaleRatio() {
@@ -137,7 +146,7 @@ function showGameOver() {
   const fontSize = 70 * scaleRatio;
   ctx.font = `${fontSize}px Verdana`;
   ctx.fillStyle = 'grey';
-  const x = canvas.width / 4.5;
+  const x = (canvas.width - ctx.measureText('GAME OVER').width) / 2;
   const y = canvas.height / 2;
   ctx.fillText('GAME OVER', x, y);
 }
@@ -146,7 +155,7 @@ function showStartGameText() {
   const fontSize = 40 * scaleRatio;
   ctx.font = `${fontSize}px Verdana`;
   ctx.fillStyle = 'grey';
-  const x = canvas.width / 14;
+  const x = (canvas.width - ctx.measureText('Tap Screen or Press Space To Start').width) / 2;
   const y = canvas.height / 2;
   ctx.fillText('Tap Screen or Press Space To Start', x, y);
 }
@@ -202,7 +211,7 @@ function gameLoop(currentTime) {
     ground.update(gameSpeed, deltaTime);
     // 선인장
     cactiController.update(gameSpeed, deltaTime);
-    itemController.update(gameSpeed, deltaTime);
+    itemController.update(gameSpeed, deltaTime, score.currentStage);
     // 달리기
     player.update(gameSpeed, deltaTime);
     updateGameSpeed(deltaTime);

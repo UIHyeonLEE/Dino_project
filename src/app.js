@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 initSocket(server);
 
 app.get('/', (req, res) => {
-  res.send('<h1>Hello World</h1>');
+  res.sendFile('index.html', { root: 'public' });
 });
 
 server.listen(PORT, async () => {

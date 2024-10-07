@@ -6,13 +6,16 @@ class ItemController {
 
   nextInterval = null;
   items = [];
+  score; // score 변수를 정의
 
-  constructor(ctx, itemImages, scaleRatio, speed) {
+  constructor(ctx, itemImages, scaleRatio, speed, score) {
+    // score 매개변수 추가
     this.ctx = ctx;
     this.canvas = ctx.canvas;
     this.itemImages = itemImages;
     this.scaleRatio = scaleRatio;
     this.speed = speed;
+    this.score = score; // score 초기화
 
     this.setNextItemTime();
   }
@@ -25,9 +28,17 @@ class ItemController {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-  createItem() {
-    const index = this.getRandomNumber(0, this.itemImages.length - 1);
-    const itemInfo = this.itemImages[index];
+  createItem(stage) {
+    const unlockedItemIds = this.score.getItemUnlockIds(stage);
+
+    if (unlockedItemIds.length === 0) return;
+
+    const index = this.getRandomNumber(0, unlockedItemIds.length - 1);
+    const itemId = unlockedItemIds[index];
+    const itemInfo = this.itemImages.find((item) => item.id === itemId);
+
+    if (!itemInfo) return;
+
     const x = this.canvas.width * 1.5;
     const y = this.getRandomNumber(10, this.canvas.height - itemInfo.height);
 
@@ -44,9 +55,9 @@ class ItemController {
     this.items.push(item);
   }
 
-  update(gameSpeed, deltaTime) {
+  update(gameSpeed, deltaTime, currentStage) {
     if (this.nextInterval <= 0) {
-      this.createItem();
+      this.createItem(currentStage);
       this.setNextItemTime();
     }
 
