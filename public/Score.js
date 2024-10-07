@@ -38,11 +38,27 @@ class Score {
       if (!response.ok) throw new Error('Network response was not ok');
       const unlockData = await response.json();
 
-      const unlockedItemIds = unlockData.data
-        .filter((item) => item.stage_id === stage + 500)
-        .map((item) => item.item_id);
+      const itemUnlockMap = {
+        0: [1], // 0스테이지: 1번 아이템
+        1: [1, 2], // 1스테이지: 1번, 2번 아이템
+        2: [1, 2, 3], // 2스테이지: 1번, 2번, 3번 아이템
+        3: [1, 2, 3, 4], // 3스테이지: 1번, 2번, 3번, 4번 아이템
+      };
 
-      this.unlockedItems = this.itemData.filter((item) => unlockedItemIds.includes(item.id));
+      const unlockedItemIds = itemUnlockMap[stage] || [];
+
+      this.unlockedItems = []; // 초기화
+
+      for (const itemId of unlockedItemIds) {
+        const item = this.getItemData(itemId);
+        if (item) {
+          this.unlockedItems.push(item);
+        }
+      }
+      this.unlockedItems = this.unlockedItems.filter((item) => {
+        const isValid = unlockedItemIds.includes(item.id);
+        return isValid;
+      });
       console.log('Unlocked items for stage', stage, this.unlockedItems);
     } catch (error) {
       console.error('Error loading unlocked items:', error);
