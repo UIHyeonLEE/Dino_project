@@ -22,10 +22,10 @@ const setUser = async (userId, userData) => {
   }
 };
 
-const getData = async (key) => {
+const getData = async (userId) => {
   try {
-    const data = await client.get(key);
-    return data ? JSON.parse(data) : null;
+    const data = await client.hGetAll(`user:${userId}`);
+    return data ? data : null;
   } catch (error) {
     console.error('Error retrieving data:', error);
     return null;

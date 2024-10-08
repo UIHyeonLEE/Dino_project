@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { getData, setUser } from '../services/redisService.js';
+import { connectRedis, setUser, getData, closeConnection } from '../services/redisService.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -18,6 +18,15 @@ app.use(express.urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
   res.sendFile('index.html', { root: 'public' });
+});
+// Redis 클라이언트 연결
+const initializeRedis = async () => {
+  await connectRedis();
+};
+
+initializeRedis().catch((error) => {
+  console.error('Failed to connect to Redis:', error);
+  process.exit(1); // Redis 연결 실패 시 서버 종료
 });
 
 // Socket.IO 연결 이벤트
@@ -58,6 +67,12 @@ app.post('/api/saveScore', async (req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
+});
+
+// 서버 종료 시 Redis 연결 종료
+process.on('SIGINT', async () => {
+  await closeConnection();
+  process.exit();
 });
 
 // 서버 시작
