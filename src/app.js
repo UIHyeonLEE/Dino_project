@@ -2,6 +2,9 @@ import express from 'express';
 import { createServer } from 'http';
 import initSocket from './init/socket.js';
 import { loadGameAssets } from './init/assets.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const server = createServer(app);
@@ -15,10 +18,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 initSocket(server);
 
-let highScore = 0;
-
 app.get('/', (req, res) => {
   res.sendFile('index.html', { root: 'public' });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
 
 server.listen(PORT, async () => {
@@ -26,8 +32,7 @@ server.listen(PORT, async () => {
 
   try {
     const assets = await loadGameAssets();
-    console.log(assets);
-    console.log('Assets loaded successfully');
+    console.log('Assets loaded successfully:', assets);
   } catch (error) {
     console.error('Failed to load game assets:', error);
   }
