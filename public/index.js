@@ -4,7 +4,6 @@ import CactiController from './CactiController.js';
 import Score from './Score.js';
 import ItemController from './ItemController.js';
 import { sendEvent } from './Socket.js';
-import { io } from 'socket.io-client';
 
 const socket = io();
 
