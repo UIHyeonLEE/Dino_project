@@ -18,6 +18,7 @@ export const gameEnd = (uuid, payload) => {
   if (!stages.length) {
     return { status: 'fail', message: 'No stages found for user' };
   }
+
   let totalScore = 0;
   stages.forEach((stage, index) => {
     let stageEndTime;
