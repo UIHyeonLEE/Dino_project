@@ -15,6 +15,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 initSocket(server);
 
+let highScore = 0;
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', { root: 'public' });
 });

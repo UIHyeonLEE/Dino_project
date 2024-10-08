@@ -112,6 +112,7 @@ class Score {
     const highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY));
     if (this.score > highScore) {
       localStorage.setItem(this.HIGH_SCORE_KEY, Math.floor(this.score));
+      sendEvent('updateScore', Math.floor(this.score));
     }
   }
 
