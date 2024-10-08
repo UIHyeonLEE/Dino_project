@@ -8,6 +8,7 @@ class Score {
   itemData = [];
   unlockedItems = [];
   itemUnlockMap = {};
+  acquiredItems = new Set();
 
   constructor(ctx, scaleRatio) {
     this.ctx = ctx;
@@ -75,11 +76,19 @@ class Score {
   }
 
   getItem(itemId) {
+    if (this.acquiredItems.has(itemId)) {
+      console.warn(`Item ${itemId} has already been acquired.`);
+      return;
+    }
+
     const itemInfo = this.getItemData(itemId);
     if (itemInfo) {
       this.score += itemInfo.score;
+      this.acquiredItems.add(itemId);
       console.log(`Item ${itemId} acquired. Score increased by ${itemInfo.score}.`);
       sendEvent(3, { itemId, stageId: this.currentStage });
+
+      this.setHighScore();
     } else {
       console.warn(`Item ${itemId} not found.`);
     }
@@ -93,6 +102,7 @@ class Score {
     this.score = 0;
     this.currentStage = 0;
     this.unlockedItems = [];
+    this.acquiredItems.clear();
   }
 
   getBackgroundColor() {
@@ -113,6 +123,7 @@ class Score {
     if (this.score > highScore) {
       localStorage.setItem(this.HIGH_SCORE_KEY, Math.floor(this.score));
       sendEvent('updateScore', Math.floor(this.score));
+      sendEvent('specialMessage', { message: 'New high score achieved!' });
     }
   }
 

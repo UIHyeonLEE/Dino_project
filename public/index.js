@@ -4,12 +4,32 @@ import CactiController from './CactiController.js';
 import Score from './Score.js';
 import ItemController from './ItemController.js';
 import { sendEvent } from './Socket.js';
+import { io } from 'socket.io-client';
+
+const socket = io();
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0,
+      v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+let userId = localStorage.getItem('userId');
+if (!userId) {
+  userId = generateUUID();
+  localStorage.setItem('userId', userId);
+  socket.emit('registerUser', { userId });
+} else {
+  socket.emit('getUserRecord', { userId });
+}
+
 const GAME_SPEED_START = 1;
-const GAME_SPEED_INCREMENT = 0.00001;
+const GAME_SPEED_INCREMENT = 0.0000001;
 
 // 게임 크기
 const GAME_WIDTH = 800;
@@ -131,7 +151,6 @@ function getScaleRatio() {
   const screenHeight = Math.min(window.innerHeight, document.documentElement.clientHeight);
   const screenWidth = Math.min(window.innerHeight, document.documentElement.clientWidth);
 
-  // window is wider than the game width
   if (screenWidth / screenHeight < GAME_WIDTH / GAME_HEIGHT) {
     return screenWidth / GAME_WIDTH;
   } else {
@@ -239,7 +258,6 @@ function gameLoop(currentTime) {
   if (collideWithItem && collideWithItem.itemId) {
     score.getItem(collideWithItem.itemId);
   }
-
   // draw
   player.draw();
   cactiController.draw();
