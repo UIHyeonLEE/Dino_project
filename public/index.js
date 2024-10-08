@@ -90,6 +90,8 @@ let gameover = false;
 let hasAddedEventListenersForRestart = false;
 let waitingToStart = true;
 
+let isGameOver = false;
+
 function createSprites() {
   // 비율에 맞는 크기
   // 유저
@@ -176,6 +178,8 @@ if (screen.orientation) {
 }
 
 function showGameOver() {
+  isGameOver = true;
+  stopBackgroundMusic();
   const fontSize = 70 * scaleRatio;
   ctx.font = `${fontSize}px Verdana`;
   ctx.fillStyle = 'grey';
@@ -185,6 +189,7 @@ function showGameOver() {
 }
 
 function showStartGameText() {
+  isGameOver = false;
   const fontSize = 40 * scaleRatio;
   ctx.font = `${fontSize}px Verdana`;
   ctx.fillStyle = 'grey';
@@ -203,6 +208,12 @@ function playBackgroundMusic() {
   music.play().catch((error) => {
     console.error('Error playing music:', error);
   });
+}
+
+function stopBackgroundMusic() {
+  const music = document.getElementById('backgroundMusic');
+  music.pause();
+  music.currentTime = 0;
 }
 
 function reset() {
@@ -288,7 +299,7 @@ function gameLoop(currentTime) {
   // 재귀 호출 (무한반복)
   requestAnimationFrame(gameLoop);
 }
-
+playBackgroundMusic();
 // 게임 프레임을 다시 그리는 메서드
 requestAnimationFrame(gameLoop);
 
