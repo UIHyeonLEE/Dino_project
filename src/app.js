@@ -1,39 +1,66 @@
 import express from 'express';
 import { createServer } from 'http';
-import initSocket from './init/socket.js';
-import { loadGameAssets } from './init/assets.js';
+import { Server } from 'socket.io';
+import { getData, setUser } from '../services/redisService.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
-
-const PORT = 3000;
+const io = new Server(server);
+const PORT = process.env.PORT || 3000;
 
 app.use(express.static('public'));
 app.use('/assets', express.static('assets'));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-initSocket(server);
 
 app.get('/', (req, res) => {
   res.sendFile('index.html', { root: 'public' });
 });
 
+// Socket.IO 연결 이벤트
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  // 여기에 이벤트 핸들러 추가
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
+
+// 점수 조회 API
+app.get('/api/getScore/:playerId', async (req, res) => {
+  const { playerId } = req.params;
+  try {
+    const playerScore = await getData(`user:${playerId}`);
+    res.status(200).send(playerScore || { score: 0 });
+  } catch (error) {
+    console.error('Error retrieving score:', error);
+    res.status(500).send({ message: 'Error retrieving score' });
+  }
+});
+// 점수 저장 API
+app.post('/api/saveScore', async (req, res) => {
+  const { playerId, score } = req.body;
+  try {
+    // Redis에 점수를 저장하는 로직
+    await setUser(playerId, { score });
+    res.status(200).send({ message: 'Score saved successfully' });
+  } catch (error) {
+    console.error('Error saving score:', error);
+    res.status(500).send({ message: 'Error saving score' });
+  }
+});
+
+// 에러 핸들링 미들웨어
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
-server.listen(PORT, async () => {
+// 서버 시작
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-
-  try {
-    const assets = await loadGameAssets();
-    console.log('Assets loaded successfully:', assets);
-  } catch (error) {
-    console.error('Failed to load game assets:', error);
-  }
 });

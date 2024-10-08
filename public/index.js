@@ -10,6 +10,10 @@ const socket = io();
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
+socket.on('connect', () => {
+  console.log('Connected to Socket.IO server');
+});
+
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = (Math.random() * 16) | 0,
@@ -193,6 +197,14 @@ function updateGameSpeed(deltaTime) {
   gameSpeed += deltaTime * GAME_SPEED_INCREMENT;
 }
 
+function playBackgroundMusic() {
+  const music = document.getElementById('backgroundMusic');
+  music.volume = 0.3; // 볼륨 조절 (0.0 ~ 1.0)
+  music.play().catch((error) => {
+    console.error('Error playing music:', error);
+  });
+}
+
 function reset() {
   hasAddedEventListenersForRestart = false;
   gameover = false;
@@ -203,6 +215,7 @@ function reset() {
   score.reset();
   gameSpeed = GAME_SPEED_START;
   sendEvent(2, { timestamp: Date.now(), broadcast: true });
+  playBackgroundMusic();
 }
 
 function setupGameReset() {

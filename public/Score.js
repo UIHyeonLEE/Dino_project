@@ -8,7 +8,6 @@ class Score {
   itemData = [];
   unlockedItems = [];
   itemUnlockMap = {};
-  acquiredItems = new Set();
 
   constructor(ctx, scaleRatio) {
     this.ctx = ctx;
@@ -18,6 +17,7 @@ class Score {
     this.loadItemUnlockMap();
   }
 
+  // 아이템 데이터 로드
   async loadItemData() {
     try {
       const response = await fetch('/assets/item.json');
@@ -35,6 +35,7 @@ class Score {
     }
   }
 
+  // 아이템 잠금 해제 맵 로드
   async loadItemUnlockMap() {
     try {
       const response = await fetch('/assets/item_unlock.json');
@@ -52,10 +53,13 @@ class Score {
       console.error('Error loading item unlock map:', error);
     }
   }
+
+  // 잠금 해제된 아이템 로드
   async loadUnlockedItems(stage) {
     this.unlockedItems = this.getItemUnlockIds(stage);
   }
 
+  // 점수 업데이트
   async update(deltaTime) {
     this.score += deltaTime * 0.01;
 
@@ -68,69 +72,100 @@ class Score {
         currentStage: this.currentStage,
         targetStage: this.currentStage * this.STAGE_SCORE_INCREMENT + 1,
       });
+      this.broadcastStageChange();
     }
   }
 
+  // 스테이지 변경 방송
+  broadcastStageChange() {
+    sendEvent('broadcast', {
+      message: `Stage has changed to: ${this.currentStage}`,
+    });
+  }
+
+  // 특정 스테이지의 잠금 해제된 아이템 ID 가져오기
   getItemUnlockIds(stage) {
     return this.itemUnlockMap[stage] || [];
   }
 
+  // 아이템 획득
   getItem(itemId) {
-    if (this.acquiredItems.has(itemId)) {
-      console.warn(`Item ${itemId} has already been acquired.`);
-      return;
-    }
-
     const itemInfo = this.getItemData(itemId);
     if (itemInfo) {
       this.score += itemInfo.score;
-      this.acquiredItems.add(itemId);
       console.log(`Item ${itemId} acquired. Score increased by ${itemInfo.score}.`);
       sendEvent(3, { itemId, stageId: this.currentStage });
-
-      this.setHighScore();
+      this.broadcastItemAcquisition(itemId);
     } else {
       console.warn(`Item ${itemId} not found.`);
     }
   }
 
+  // 아이템 획득 방송
+  broadcastItemAcquisition(itemId) {
+    sendEvent('broadcast', {
+      message: `Item ${itemId} has been acquired!`,
+    });
+  }
+
+  // 아이템 데이터 가져오기
   getItemData(itemId) {
     return this.itemData.find((item) => item.id === itemId);
   }
 
+  // 점수 및 스테이지 리셋
   reset() {
     this.score = 0;
     this.currentStage = 0;
     this.unlockedItems = [];
-    this.acquiredItems.clear();
   }
 
+  // 배경색 가져오기
   getBackgroundColor() {
     const stageColors = [
-      'lightblue', // 0~499점
-      'lightgreen', // 500~999점
-      'lightcoral', // 1000~1499점
-      'lightgoldenrodyellow', // 1500~1999점
-      'lightpink', // 2000~2499점
-      'lightyellow', // 2500~2999점
-      'lightgray', // 3000점 이상
+      'lightblue', // 0 - 499 점
+      'lightgreen', // 500 - 999 점
+      'lightcoral', // 1000 - 1499 점
+      'lightgoldenrodyellow', // 1500 - 1999 점
+      'lightpink', // 2000 - 2499 점
+      'lightyellow', // 2500 - 2999 점
+      'lightgray', // 3000 점 이상
     ];
-    return stageColors[this.currentStage] || 'white'; // 색상이 없으면 기본 흰색
+    return stageColors[this.currentStage] || 'white'; // 기본 흰색
   }
 
-  setHighScore() {
+  // 최고 점수 설정
+  async setHighScore() {
     const highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY));
     if (this.score > highScore) {
       localStorage.setItem(this.HIGH_SCORE_KEY, Math.floor(this.score));
       sendEvent('updateScore', Math.floor(this.score));
-      sendEvent('specialMessage', { message: 'New high score achieved!' });
+
+      // Redis에 점수 저장
+      await this.saveScore('player:1', Math.floor(this.score)); // API를 통해 저장
     }
   }
 
-  getScore() {
-    return this.score;
+  // 점수를 저장하는 함수 (API 호출)
+  async saveScore(playerId, score) {
+    const response = await fetch('/api/saveScore', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ playerId, score }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to save score:', response.statusText);
+      return;
+    }
+
+    const data = await response.json();
+    console.log(data.message);
   }
 
+  // 점수와 스테이지 그리기
   draw() {
     const highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY));
     const y = 20 * this.scaleRatio;
@@ -143,13 +178,12 @@ class Score {
     const highScoreX = scoreX - 200 * this.scaleRatio;
     const stageX = scoreX - 115 * this.scaleRatio;
 
-    const scorePadded = Math.floor(this.score).toString().padStart(6, 0);
-    const highScorePadded = highScore.toString().padStart(6, 0);
+    const scorePadded = Math.floor(this.score).toString().padStart(6, '0');
+    const highScorePadded = highScore.toString().padStart(6, '0');
 
     this.ctx.fillText(scorePadded, scoreX, y);
     this.ctx.fillText(`HI ${highScorePadded}`, highScoreX, y);
     this.ctx.fillText(`Stage: ${this.currentStage}`, stageX, y);
   }
 }
-
 export default Score;
